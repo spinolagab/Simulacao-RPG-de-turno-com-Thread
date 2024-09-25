@@ -13,7 +13,7 @@ typedef struct PCharacter {
 
 }PCharacter;
 
-PCharacter *characterCreate(const char *nome,const char *classe ,int HP, skillPack habilidades);
+PCharacter characterCreate(const char *nome,const char *classe ,int HP, skillPack habilidades);
 
 
 #endif

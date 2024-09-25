@@ -1,9 +1,24 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "Pcharacter.h"
 #include "skills.h"
 #include <pthread.h>
 #include <semaphore.h>
+
+// Mutex
+pthread_mutex_t Turno_Atual;
+
+// Semaforos
+sem_t Turnos_Mago;
+sem_t Turnos_Combatente;
+sem_t Turnos_Boss;
+
+// Dados do Boss
+int HP_Boss = 400;
+char* Efeito_Status[50];
+int danoAtaque = 10;
+
 
 
 skill createSkill (char *n_habilidade, char *elemento, int dano, char *efeito, int disponibilidade){
@@ -41,7 +56,7 @@ skillPack createSkillPack(skill *habilidades){
   return conjunto;
 }
 
-PCharacter *characterCreate(const char *nome,const char *classe ,int HP, skillPack habilidades){
+PCharacter characterCreate(const char *nome,const char *classe ,int HP, skillPack habilidades){
   PCharacter personagem;
 
   //personagem.nome = nome;
@@ -58,7 +73,40 @@ PCharacter *characterCreate(const char *nome,const char *classe ,int HP, skillPa
 
 }
 
+void mostrarAcoes(PCharacter personagem){
 
+  for (int i = 0; i < 4; i++){
+    printf("%d: %s  Usos restantes:%d ", i, personagem.habilidades.pack[i].n_habilidade, personagem.habilidades.pack[i].disponibilidade[0]);
+    if (i%2 == 1){
+      printf("\n");
+    }
+  }
+
+}
+
+void* Acao_mago(PCharacter arg){
+  int escolha;
+  int critico = 1;
+  // Enquanto o boss e o mago estiverem vivos o mago poderá agir
+  while(HP_Boss != 0 && arg.HP != 0){
+    sem_wait(&Turnos_Mago); // Espera o mago ter sua ação disponível
+
+    // Travar a sessão crítica
+    pthread_mutex_lock(&Turno_Atual);
+
+    // Mostrar as ações que podem ser tomadas
+    printf("Turno do mago. O que ele deve usar: \n ");
+    mostrarAcoes(arg);
+    printf("\n");
+
+    scanf("%d", &escolha);
+    
+
+
+
+
+  }
+}
 
 int main(void){
 
@@ -73,14 +121,25 @@ int main(void){
   skillPack Combatente = createSkillPack(conjunto1);
 
   // Pack de skills para o mago
-  skill FlechaElemental = createSkill("Flecha Flamejante", "Fogo", 5, "Queimaduras", 20), 
-  Cura = createSkill("Cura", "Vida", 20, "Cura", 10),
+  skill Cura = createSkill("Cura", "Vida", 20, "Cura", 10),
+  FlechaElemental = createSkill("Flecha Flamejante", "Fogo", 5, "Queimaduras", 20), 
   RaioNecrotico = createSkill("Raio Necrótico", "Necrotico", 15, "Alquebrado", 10),
   Bruxaria = createSkill("Bruxaria", "Necrotico", 0, "Amaldicoado", 15);
 
-  skill conjunto2[4] = {FlechaElemental, Cura, RaioNecrotico, Bruxaria};
+  skill conjunto2[4] = {Cura, FlechaElemental, RaioNecrotico, Bruxaria};
+
+  skillPack Mago = createSkillPack(conjunto2);
+
+  PCharacter Fulano = characterCreate("Fulano", "Mago", 60, Mago);
+  PCharacter Siclano = characterCreate("Siclano", "Combatente", 180, Combatente);
 
   
+
+
+
+
+
+  return 0;
 
 
 }
