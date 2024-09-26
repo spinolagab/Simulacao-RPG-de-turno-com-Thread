@@ -13,7 +13,16 @@ typedef struct PCharacter {
 
 }PCharacter;
 
+// Cosntrutor
 PCharacter characterCreate(const char *nome,const char *classe ,int HP, skillPack habilidades);
 
+// Setter
+void setHP(PCharacter character, int value);
+
+// Getters
+char* getName(PCharacter character);
+char* getClasse(PCharacter character);
+int getHP(PCharacter character);
+skillPack getPack(PCharacter character);
 
 #endif

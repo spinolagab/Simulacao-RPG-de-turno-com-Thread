@@ -27,5 +27,6 @@ char* getElemento(skill* skill);
 int getDano(skill* skill);
 char* getEfeito(skill* skill);
 int getDisponibilidade(skill skill);
+skill getSkillIndex(skillPack pack, int index);
 
 #endif

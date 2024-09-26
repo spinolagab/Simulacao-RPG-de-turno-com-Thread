@@ -21,59 +21,6 @@ char* Efeito_Status[50];
 int danoAtaque = 10;
 
 
-
-skill createSkill (char *n_habilidade, char *elemento, int dano, char *efeito, int disponibilidade){
-  skill habilidade;
-
-  //habilidade.n_habilidade = n_habilidade;
-
-  strncpy(habilidade.n_habilidade, n_habilidade, sizeof(habilidade.n_habilidade)-1);
-  habilidade.n_habilidade[sizeof(habilidade.n_habilidade)-1] = '\0';
-
-  //habilidade.elemento = elemento;
-  strncpy(habilidade.elemento, elemento, sizeof(habilidade.elemento)-1);
-  habilidade.elemento[sizeof(habilidade.elemento)-1] = '\0';
-  
-  habilidade.dano = dano;
-  
-  //habilidade.efeito = efeito;
-  strncpy(habilidade.efeito, efeito, sizeof(habilidade.efeito)-1);
-  habilidade.efeito[sizeof(habilidade.efeito)-1] = '\0';
-
-  habilidade.disponibilidade[1] = disponibilidade;
-  habilidade.disponibilidade[0] = habilidade.disponibilidade[1];
-
-  return habilidade;
-
-}
-
-skillPack createSkillPack(skill *habilidades){
-  skillPack conjunto;
-
-  for(int i = 0; i < 4; i++){
-    conjunto.pack[i] = habilidades[i];
-  }
-
-  return conjunto;
-}
-
-PCharacter characterCreate(const char *nome,const char *classe ,int HP, skillPack habilidades){
-  PCharacter personagem;
-
-  //personagem.nome = nome;
-  strncpy(personagem.nome, nome, sizeof(personagem.nome)-1);
-  personagem.nome[sizeof(personagem.nome)-1];
-
-  //personagem.classe = classe;
-  strncpy(personagem.classe, classe, sizeof(personagem.classe)-1);
-  personagem.classe[sizeof(personagem.classe)-1];
-
-  personagem.HP = HP;
-
-  personagem.habilidades = habilidades;
-
-}
-
 // Mostrar ações do personagem escolhido
 void mostrarAcoes(PCharacter personagem){
 
@@ -115,15 +62,9 @@ void* Acao_mago(PCharacter* arg){
         // Se não tiver usos restantes da habilidade ela não poderá ser usada
         if(arg[0].habilidades.pack[0].disponibilidade[0] == 0){
           printf("Não há usos restantes dessa habilidae, use outra!\n");
+          valido = true;
           break;
         }
-
-        /*// Verificar se foi um acerto crítico (Valor aleatório num range 0 - 19 que recebe +1 para range 1 - 20)
-        if((rand()%19)+1 == 20){
-          critico = 2;
-          printf("Acerto Crítico! \n");
-        }
-        */
 
         // Escolha de alvo sendo validada
         while (alvo != 0 && alvo != 1){
@@ -137,8 +78,9 @@ void* Acao_mago(PCharacter* arg){
 
         // Cura realizada
         printf("Alvo curado em 20 pontos. \n");
-        arg[alvo].HP += 20;
-        
+        //arg[alvo].HP += 20;
+        setHP(arg[alvo], getHP(arg[alvo]));
+
         // Valida a escolha
         valido = true;
         
@@ -148,6 +90,12 @@ void* Acao_mago(PCharacter* arg){
         // Se não tiver usos restantes não poderá usar a habilidade
         if(arg[0].habilidades.pack[1].disponibilidade[0] == 0){
           printf("Não há usos restantes dessa habilidae, use outra!\n");
+          break;
+        }
+
+        // Verificar se acertou o ataque (70% de chance de acerto)
+        if((rand()%99)+1 <= 30){
+          printf("O ataque não acertou!\n");
           break;
         }
 
@@ -163,12 +111,13 @@ void* Acao_mago(PCharacter* arg){
       }
     }
 
-
+    pthread_mutex_unlock(&Turno_Atual);
 
 
   }
   if(arg[0].HP == 0)
     printf("O Mago caiu! \n");
+
 }
 
 int main(void){
