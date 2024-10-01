@@ -1,4 +1,5 @@
 #include "skills.h"
+#include <string.h>
 
 // Construtores
 skill createSkill (char *n_habilidade, char *elemento, int dano, char *efeito, int disponibilidade){
@@ -53,10 +54,10 @@ char* getEfeito(skill* habilidade){
   return habilidade->efeito;
 }
 
-int getDisponibilidade(skill habilidade){
-  return habilidade.disponibilidade[0];
+int getDisponibilidade(skill* habilidade){
+  return habilidade->disponibilidade[0];
 }
 
-skill getSkillIndex(skillPack pack, int index){
-  return pack.pack[index];
+skill getSkillIndex(skillPack* pack, int index){
+  return pack->pack[index];
 }

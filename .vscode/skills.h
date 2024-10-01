@@ -22,11 +22,11 @@ skill createSkill(char *n_habilidade, char *elemento, int dano, char *efeito, in
 skillPack createSkillPack(skill *habilidades);
 
 // Getters
-char* getNome(skill* skill);
-char* getElemento(skill* skill);
-int getDano(skill* skill);
-char* getEfeito(skill* skill);
-int getDisponibilidade(skill skill);
-skill getSkillIndex(skillPack pack, int index);
+char* getNome(skill *skill);
+char* getElemento(skill *skill);
+int getDano(skill *skill);
+char* getEfeito(skill *skill);
+int getDisponibilidade(skill *skill);
+skill getSkillIndex(skillPack *pack, int index);
 
 #endif

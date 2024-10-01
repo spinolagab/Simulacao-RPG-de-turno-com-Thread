@@ -7,6 +7,13 @@
 #include <pthread.h>
 #include <semaphore.h>
 
+
+typedef struct ThreadData{
+  PCharacter *personagens;
+  int numPersonagens;
+} ThreadData;
+
+
 // Mutex
 pthread_mutex_t Turno_Atual;
 
@@ -16,8 +23,9 @@ sem_t Turnos_Combatente;
 sem_t Turnos_Boss;
 
 // Dados do Boss
+char* nome_boss = "Beltrano";
 int HP_Boss = 400;
-char* Efeito_Status[50];
+char Efeito_Status[50];
 int duracao = 0;
 int danoAtaque = 10;
 
@@ -35,12 +43,15 @@ void mostrarAcoes(PCharacter personagem){
 }
 
 
-// Ações do Mago (arg[0])
-void* Acao_mago(PCharacter* arg){
+// Ações do Mago (personagem[0])
+void* Acao_mago(void* arg){
   int escolha, critico = 1, dano_causado, alvo, roll;
   bool valido = false;
+  ThreadData *data = (ThreadData*)arg;
+  PCharacter *personagem = data->personagens;
+
   // Enquanto o boss e o mago estiverem vivos o mago poderá agir
-  while(HP_Boss != 0 && arg[0].HP != 0){
+  while(HP_Boss != 0 && personagem[0].HP != 0){
     sem_wait(&Turnos_Mago); // Espera o mago ter sua ação disponível
 
     // Travar a sessão crítica
@@ -50,7 +61,7 @@ void* Acao_mago(PCharacter* arg){
     while(!valido){
       // Mostrar as ações que podem ser tomadas
       printf("Turno do mago. O que ele deve usar: \n ");
-      mostrarAcoes(arg[0]);
+      mostrarAcoes(personagem[0]);
       printf("\n");
 
       scanf("%d", &escolha);
@@ -58,7 +69,7 @@ void* Acao_mago(PCharacter* arg){
       
       case 0:
         // Se não tiver usos restantes da habilidade ela não poderá ser usada
-        if(arg[0].habilidades.pack[0].disponibilidade[0] == 0){
+        if(personagem[0].habilidades.pack[0].disponibilidade[0] == 0){
           printf("Não há usos restantes dessa habilidae, use outra!\n");
           valido = true;
           break;
@@ -66,7 +77,7 @@ void* Acao_mago(PCharacter* arg){
 
         // Escolha de alvo sendo validada
         while (alvo != 0 && alvo != 1){
-          printf("Escolha o alvo \n[0] Mago HP: %d/60    [1] Combatente HP: %d/180", arg[0].HP, arg[1].HP);
+          printf("Escolha o alvo \n[0] Mago HP: %d/60    [1] Combatente HP: %d/180", personagem[0].HP, personagem[1].HP);
           scanf("%d", &alvo);
 
           if(alvo > 1 || alvo < 0){
@@ -76,8 +87,8 @@ void* Acao_mago(PCharacter* arg){
 
         // Cura realizada
         printf("Alvo curado em 20 pontos. \n");
-        //arg[alvo].HP += 20;
-        setHP(arg[alvo], getHP(arg[alvo]));
+        //personagem[alvo].HP += 20;
+        personagem[alvo].HP += 20;
 
         // Valida a escolha
         valido = true;
@@ -86,7 +97,7 @@ void* Acao_mago(PCharacter* arg){
      // Flecha flamejante 
       case 1:
         // Se não tiver usos restantes não poderá usar a habilidade
-        if(arg[0].habilidades.pack[1].disponibilidade[0] == 0){
+        if(personagem[0].habilidades.pack[1].disponibilidade[0] == 0){
           printf("Não há usos restantes dessa habilidae, use outra!\n");
           break;
         }
@@ -104,14 +115,14 @@ void* Acao_mago(PCharacter* arg){
           printf("Acerto crítico!\n");
         }
 
-        dano_causado = arg[0].habilidades.pack[1].dano * critico;
+        dano_causado = personagem[0].habilidades.pack[1].dano * critico;
 
         HP_Boss -= dano_causado;
 
         // Calcular a chance de aplicar queimaduras (50%)
-        if(strcmp(Efeito_Status, "")){
+        if(Efeito_Status[0] == '\0'){
           if((rand()%99)+1 > 50){
-            strcpy(Efeito_Status, arg[0].habilidades.pack[1].efeito);
+            strcpy(Efeito_Status, personagem[0].habilidades.pack[1].efeito);
             printf("O alvo foi queimado!\n");
             // Deixar o efeito aplicado por até 5 rodadas (causando 5 de dano por rodada)
             duracao = (rand()%4)+1 ;
@@ -142,7 +153,7 @@ void* Acao_mago(PCharacter* arg){
     valido = false;
 
   }
-  if(arg[0].HP == 0)
+  if(personagem[0].HP == 0)
     printf("O Mago caiu! \n");
 
 }
