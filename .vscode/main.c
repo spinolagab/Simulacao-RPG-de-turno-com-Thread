@@ -18,6 +18,7 @@ sem_t Turnos_Boss;
 // Dados do Boss
 int HP_Boss = 400;
 char* Efeito_Status[50];
+int duracao = 0;
 int danoAtaque = 10;
 
 
@@ -36,10 +37,7 @@ void mostrarAcoes(PCharacter personagem){
 
 // Ações do Mago (arg[0])
 void* Acao_mago(PCharacter* arg){
-  int escolha;
-  int critico = 1;
-  int dano_causado;
-  int alvo;
+  int escolha, critico = 1, dano_causado, alvo, roll;
   bool valido = false;
   // Enquanto o boss e o mago estiverem vivos o mago poderá agir
   while(HP_Boss != 0 && arg[0].HP != 0){
@@ -85,7 +83,7 @@ void* Acao_mago(PCharacter* arg){
         valido = true;
         
         break;
-      
+     // Flecha flamejante 
       case 1:
         // Se não tiver usos restantes não poderá usar a habilidade
         if(arg[0].habilidades.pack[1].disponibilidade[0] == 0){
@@ -93,17 +91,45 @@ void* Acao_mago(PCharacter* arg){
           break;
         }
 
+        roll = (rand()%99)+1;
+        
         // Verificar se acertou o ataque (70% de chance de acerto)
-        if((rand()%99)+1 <= 30){
+        if(roll <= 30){
           printf("O ataque não acertou!\n");
           break;
         }
 
-        /*TODO: funções da habilidade de dano do mago*/
+        if (roll >= 90){
+          critico = 2;
+          printf("Acerto crítico!\n");
+        }
 
+        dano_causado = arg[0].habilidades.pack[1].dano * critico;
+
+        HP_Boss -= dano_causado;
+
+        // Calcular a chance de aplicar queimaduras (50%)
+        if(strcmp(Efeito_Status, "")){
+          if((rand()%99)+1 > 50){
+            strcpy(Efeito_Status, arg[0].habilidades.pack[1].efeito);
+            printf("O alvo foi queimado!\n");
+            // Deixar o efeito aplicado por até 5 rodadas (causando 5 de dano por rodada)
+            duracao = (rand()%4)+1 ;
+          }
+        }
+
+        // Valida a escolha e reseta o crítico
+        valido = true;
+        critico = 1;
         break;
 
+      case 2:
+        // TODO: Raio necrótico
+        break;
 
+      case 3:
+        // TODO: Bruxaria
+        break;
 
       default:
         printf("Escolha inválida. Insira apenas números no intervalo [0 - 3].\n");
@@ -113,6 +139,7 @@ void* Acao_mago(PCharacter* arg){
 
     pthread_mutex_unlock(&Turno_Atual);
 
+    valido = false;
 
   }
   if(arg[0].HP == 0)
