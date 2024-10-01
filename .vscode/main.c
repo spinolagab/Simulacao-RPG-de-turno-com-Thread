@@ -61,6 +61,7 @@ void* Acao_mago(void* arg){
     while(!valido){
       // Mostrar as ações que podem ser tomadas
       printf("Turno do mago. O que ele deve usar: \n ");
+      roll = (rand()%99)+1;
       mostrarAcoes(personagem[0]);
       printf("\n");
 
@@ -74,7 +75,7 @@ void* Acao_mago(void* arg){
           valido = true;
           break;
         }
-
+        personagem[0].habilidades.pack[0].disponibilidade[0] -= 1;
         // Escolha de alvo sendo validada
         while (alvo != 0 && alvo != 1){
           printf("Escolha o alvo \n[0] Mago HP: %d/60    [1] Combatente HP: %d/180", personagem[0].HP, personagem[1].HP);
@@ -102,7 +103,7 @@ void* Acao_mago(void* arg){
           break;
         }
 
-        roll = (rand()%99)+1;
+        personagem[0].habilidades.pack[1].disponibilidade[0] -= 1;
         
         // Verificar se acertou o ataque (70% de chance de acerto)
         if(roll <= 30){
@@ -125,7 +126,7 @@ void* Acao_mago(void* arg){
             strcpy(Efeito_Status, personagem[0].habilidades.pack[1].efeito);
             printf("O alvo foi queimado!\n");
             // Deixar o efeito aplicado por até 5 rodadas (causando 5 de dano por rodada)
-            duracao = (rand()%4)+1 ;
+            duracao = 2+(rand()%4) ;
           }
         }
 
@@ -135,11 +136,73 @@ void* Acao_mago(void* arg){
         break;
 
       case 2:
-        // TODO: Raio necrótico
+        // Se não tiver usos restantes não poderá usar a habilidade
+        if(personagem[0].habilidades.pack[2].disponibilidade[0] == 0){
+          printf("Não há usos restantes dessa habilidae, use outra!\n");
+          break;
+        }
+        
+        personagem[0].habilidades.pack[2].disponibilidade[0] -= 1;
+
+        // Verificar se acertou o ataque (55% de chance de acerto)
+        if(roll <= 45){
+          printf("O ataque não acertou!\n");
+          break;
+        }
+
+        if (roll >= 80){
+          critico = 4;
+          printf("Acerto crítico!\n");
+        }
+
+        dano_causado = personagem[0].habilidades.pack[2].dano * critico;
+
+        HP_Boss -= dano_causado;
+
+        // Calcular a chance de aplicar queimaduras (65%)
+        if(Efeito_Status[0] == '\0'){
+          if((rand()%99)+1 > 65){
+            strcpy(Efeito_Status, personagem[0].habilidades.pack[2].efeito);
+            printf("A ferida está necrosando!\n");
+            // Deixar o efeito aplicado por até 6 rodadas (causando 6 de dano por rodada)
+            duracao = 2+(rand()%4) ;
+          }
+        }
+
+        // Valida a escolha e reseta o crítico
+        valido = true;
+        critico = 1;
         break;
 
       case 3:
-        // TODO: Bruxaria
+        // Se não tiver usos restantes não poderá usar a habilidade
+        if(personagem[0].habilidades.pack[3].disponibilidade[0] == 0){
+          printf("Não há usos restantes dessa habilidae, use outra!\n");
+          break;
+        }
+        
+        personagem[0].habilidades.pack[3].disponibilidade[0] -= 1;
+        // Verificar se acertou o ataque (50% de chance de acerto)
+        if(roll <= 50){
+          printf("A maldição falhou!\n");
+          break;
+        }
+
+        if(Efeito_Status[0] == '\0'){
+          if((rand()%99)+1 > 65){
+            strcpy(Efeito_Status, personagem[0].habilidades.pack[2].efeito);
+            printf("A ferida está necrosando!\n");
+            // Deixar o efeito aplicado por até 6 rodadas (causando 6 de dano por rodada)
+            duracao = 2+(rand()%4) ;
+          }
+        } else{
+          printf("O alvo já está sob algum efeito!");
+        }
+
+        // Valida a escolha e reseta o crítico
+        valido = true;
+        critico = 1;
+
         break;
 
       default:
@@ -158,6 +221,8 @@ void* Acao_mago(void* arg){
 
 }
 
+
+
 int main(void){
 
   // Pack de skills para o combatente
@@ -172,8 +237,8 @@ int main(void){
 
   // Pack de skills para o mago
   skill Cura = createSkill("Curar", "Vida", 20, "Cura", 10),
-  FlechaElemental = createSkill("Flecha Flamejante", "Fogo", 5, "Queimaduras", 20), 
-  RaioNecrotico = createSkill("Raio Necrótico", "Necrotico", 15, "Alquebrado", 10),
+  FlechaElemental = createSkill("Flecha Flamejante", "Fogo", 10, "Queimaduras", 20), 
+  RaioNecrotico = createSkill("Raio Necrótico", "Necrotico", 15, "Necrose", 10),
   Bruxaria = createSkill("Bruxaria", "Necrotico", 0, "Amaldicoado", 15);
 
   skill conjunto2[4] = {Cura, FlechaElemental, RaioNecrotico, Bruxaria};
