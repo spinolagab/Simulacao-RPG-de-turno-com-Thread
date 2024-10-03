@@ -71,7 +71,7 @@ void* Acao_mago(void* arg){
       case 0:
         // Se não tiver usos restantes da habilidade ela não poderá ser usada
         if(personagem[0].habilidades.pack[0].disponibilidade[0] == 0){
-          printf("Não há usos restantes dessa habilidae, use outra!\n");
+          printf("Não há usos restantes dessa habilidade, use outra!\n");
           valido = true;
           break;
         }
@@ -99,7 +99,7 @@ void* Acao_mago(void* arg){
       case 1:
         // Se não tiver usos restantes não poderá usar a habilidade
         if(personagem[0].habilidades.pack[1].disponibilidade[0] == 0){
-          printf("Não há usos restantes dessa habilidae, use outra!\n");
+          printf("Não há usos restantes dessa habilidade, use outra!\n");
           break;
         }
 
@@ -138,7 +138,7 @@ void* Acao_mago(void* arg){
       case 2:
         // Se não tiver usos restantes não poderá usar a habilidade
         if(personagem[0].habilidades.pack[2].disponibilidade[0] == 0){
-          printf("Não há usos restantes dessa habilidae, use outra!\n");
+          printf("Não há usos restantes dessa habilidade, use outra!\n");
           break;
         }
         
@@ -177,7 +177,7 @@ void* Acao_mago(void* arg){
       case 3:
         // Se não tiver usos restantes não poderá usar a habilidade
         if(personagem[0].habilidades.pack[3].disponibilidade[0] == 0){
-          printf("Não há usos restantes dessa habilidae, use outra!\n");
+          printf("Não há usos restantes dessa habilidade, use outra!\n");
           break;
         }
         
@@ -221,7 +221,175 @@ void* Acao_mago(void* arg){
 
 }
 
+void* Acao_combatente(void* arg){
+  int escolha, critico = 1, dano_causado, alvo, roll;
+  bool valido = false;
+  ThreadData *data = (ThreadData*)arg;
+  PCharacter *personagem = data->personagens;
 
+  // Enquanto o boss e o combatente estiverem vivos o combatente poderá agir
+  while(HP_Boss != 0 && personagem[1].HP != 0){
+    sem_wait(&Turnos_Combatente); // Espera o combatente ter sua ação disponível
+
+    // Travar a sessão crítica
+    pthread_mutex_lock(&Turno_Atual);
+
+
+    while(!valido){
+      // Mostrar as ações que podem ser tomadas
+      printf("Turno do combatente. O que ele deve usar: \n ");
+      roll = (rand()%99)+1;
+      mostrarAcoes(personagem[1]);
+      printf("\n");
+
+      scanf("%d", &escolha);
+      switch (escolha){
+      
+      case 0:
+        // Se não tiver usos restantes da habilidade ela não poderá ser usada
+        if(personagem[1].habilidades.pack[0].disponibilidade[0] == 0){
+          printf("Não há usos restantes dessa habilidade, use outra!\n");
+          valido = true;
+          break;
+        }
+        personagem[1].habilidades.pack[0].disponibilidade[0] -= 1;
+
+        // Verificar se acertou o ataque (70% de chance de acerto)
+        if(roll <= 30){
+          printf("O ataque não acertou!\n");
+          break;
+        }
+
+        if (roll >= 90){
+          critico = 2;
+          printf("Acerto crítico!\n");
+        }
+
+        dano_causado = personagem[1].habilidades.pack[1].dano * critico;
+
+        HP_Boss -= dano_causado;
+
+        // Valida a escolha
+        valido = true;
+        
+        break;
+
+      case 1:
+        // Se não tiver usos restantes não poderá usar a habilidade
+        if(personagem[1].habilidades.pack[1].disponibilidade[0] == 0){
+          printf("Não há usos restantes dessa habilidade, use outra!\n");
+          break;
+        }
+
+        personagem[1].habilidades.pack[1].disponibilidade[0] -= 1;
+        
+        // Verificar se acertou o ataque (70% de chance de acerto)
+        if(roll <= 30){
+          printf("O ataque não acertou!\n");
+          break;
+        }
+
+        if (roll >= 90){
+          critico = 2;
+          printf("Acerto crítico!\n");
+        }
+
+        dano_causado = personagem[1].habilidades.pack[1].dano * critico;
+
+        HP_Boss -= dano_causado;
+
+        // Calcular a chance de atordoar (50%)
+        if(Efeito_Status[0] == '\0'){
+          if((rand()%99)+1 > 50){
+            strcpy(Efeito_Status, personagem[1].habilidades.pack[1].efeito);
+            printf("%s está atordoado!\n",nome_boss);
+            // Deixar o efeito aplicado por até 5 rodadas (causando 5 de dano por rodada)
+            duracao = 2+(rand()%4) ;
+          }
+        }
+
+        // Valida a escolha e reseta o crítico
+        valido = true;
+        critico = 1;
+        break;
+
+      case 2:
+        // Se não tiver usos restantes não poderá usar a habilidade
+        if(personagem[1].habilidades.pack[2].disponibilidade[0] == 0){
+          printf("Não há usos restantes dessa habilidade, use outra!\n");
+          break;
+        }
+        
+        personagem[1].habilidades.pack[2].disponibilidade[0] -= 1;
+
+        // Verificar se acertou o ataque (65% de chance de acerto)
+        if(roll <= 35){
+          printf("O ataque não acertou!\n");
+          break;
+        }
+
+        if (roll >= 80){
+          critico = 4;
+          printf("Acerto crítico!\n");
+        }
+
+        dano_causado = personagem[1].habilidades.pack[2].dano * critico;
+
+        HP_Boss -= dano_causado;
+
+        // Calcular a chance de aplicar multi-attack (65%)
+        if(Efeito_Status[0] == '\0'){
+          if((rand()%99)+1 > 65){
+            strcpy(Efeito_Status, personagem[1].habilidades.pack[2].efeito);
+            printf("Prepare-se para um multi-attack!\n");
+            // Continue atacando por até 6 rodadas (causando 5 de dano por rodada)
+            duracao = 2+(rand()%4) ;
+          }
+        }
+
+        // Valida a escolha e reseta o crítico
+        valido = true;
+        critico = 1;
+        break;
+
+      case 3:
+        // Se não tiver usos restantes não poderá usar a habilidade
+        if(personagem[1].habilidades.pack[3].disponibilidade[0] == 0){
+          printf("Não há usos restantes dessa habilidade, use outra!\n");
+          break;
+        }
+        
+        personagem[1].habilidades.pack[3].disponibilidade[0] -= 1;
+        // Verificar se restringiu o ataque do boss (50% de chance de acerto)
+        if(roll <= 50){
+          printf("Restringir falhou!\n");
+          break;
+        }
+
+        // Restrição realizada
+        printf("Defesa será aumentada nesse turno! \n");
+        danoAtaque/2;
+
+        // Valida a escolha
+        valido = true;
+        
+        break;
+
+      default:
+        printf("Escolha inválida. Insira apenas números no intervalo [0 - 3].\n");
+        break;
+      }
+    }
+
+    pthread_mutex_unlock(&Turno_Atual);
+
+    valido = false;
+
+  }
+  if(personagem[1].HP == 0)
+    printf("O Combatente caiu! \n");
+
+}
 
 int main(void){
 
@@ -256,8 +424,4 @@ int main(void){
 
   return 0;
 
-
 }
-
-
-
