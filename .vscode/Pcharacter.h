@@ -12,8 +12,13 @@ typedef struct PCharacter {
 
 }PCharacter;
 
+typedef struct ThreadData{
+  PCharacter personagens[2];
+} ThreadData;
+
 // Cosntrutor
 PCharacter characterCreate(const char *nome,const char *classe ,int HP, skillPack habilidades);
+ThreadData characterPack(PCharacter *personagens);
 
 // Setter
 void setHP(PCharacter *character, int value);

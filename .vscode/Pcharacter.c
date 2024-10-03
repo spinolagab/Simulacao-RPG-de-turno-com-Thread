@@ -23,6 +23,14 @@ PCharacter characterCreate(const char *nome,const char *classe ,int HP, skillPac
 
 }
 
+ThreadData characterPack(PCharacter *personagens){
+  ThreadData data;
+
+  data.personagens[0] = personagens[0];
+  data.personagens[1] = personagens[1];
+  
+  return data;
+}
 
 // Setter
 void setHP(PCharacter *character, int value){
